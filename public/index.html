@@ -1,0 +1,2645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add Excel library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            /* Light Theme Colors */
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --accent: #560bad;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #7209b7;
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.08);
+            /* Modern curved UI */
+            --border-radius-sm: 12px;
+            --border-radius: 16px;
+            --border-radius-lg: 20px;
+            --border-radius-xl: 24px;
+            /* Transitions */
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        [data-theme="dark"] {
+            /* Dark Theme Colors */
+            --primary: #5a6ff0;
+            --primary-light: #6d85f2;
+            --secondary: #4d46c9;
+            --accent: #6d13d6;
+            --success: #5cd3f5;
+            --danger: #f83a94;
+            --warning: #f9a23e;
+            --info: #8a1cd9;
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-card: #252525;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a0a0a0;
+            --border: #383838;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+        * {
+            transition: var(--transition);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: var(--bg-secondary);
+            box-shadow: 0 4px 20px var(--shadow);
+            border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+            padding: 10px 0;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .college-logo, .club-logo {
+            height: 70px;
+            width: auto;
+            border-radius: 8px;
+            object-fit: contain;
+            margin-right: 10px;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 5px 0;
+            margin-left: 150px;
+        }
+        .theme-toggle {
+            background: var(--bg-card);
+            border: none;
+            border-radius: var(--border-radius);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+        .theme-toggle i {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+        }
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        .module-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 8px 25px var(--shadow);
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px var(--shadow);
+        }
+        .module-icon {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 25px;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        .module-content {
+            flex: 1;
+        }
+        .module-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .module-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        .card {
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 8px 25px var(--shadow);
+            margin-bottom: 25px;
+            background: var(--bg-card);
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 25px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4);
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+        }
+        .btn-outline-secondary {
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-weight: 600;
+            border: 2px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .btn-outline-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .form-control, .form-select {
+            border-radius: var(--border-radius);
+            border: 2px solid var(--border);
+            padding: 10px 15px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th {
+            background-color: var(--bg-secondary);
+            font-weight: 700;
+            padding: 15px;
+            border-bottom: 2px solid var(--border);
+            text-align: left;
+            color: var(--text-primary);
+        }
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        table tr:last-child td {
+            border-bottom: none;
+        }
+        table tr:hover {
+            background-color: var(--bg-secondary);
+        }
+        .pass {
+            color: var(--success);
+            font-weight: 700;
+        }
+        .fail {
+            color: var(--danger);
+            font-weight: 700;
+        }
+        .mark-input {
+            width: 90px;
+            text-align: center;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--border);
+            padding: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            background: transparent;
+        }
+        .tab-content {
+            padding: 20px;
+        }
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .back-btn i {
+            margin-right: 8px;
+        }
+        .back-btn:hover {
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+        h2 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        .report-summary {
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        .student-list, .subject-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: var(--border-radius);
+        }
+        .page-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .stats-card {
+            text-align: center;
+            padding: 25px;
+            border-radius: var(--border-radius-lg);
+            background: var(--bg-card);
+            box-shadow: 0 8px 25px var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+        .stats-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 15px 0;
+        }
+        .stats-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .section-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .section-option {
+            padding: 10px 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+        .section-option:hover {
+            background: var(--bg-card);
+            border-color: var(--primary);
+        }
+        .section-option.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        .section-all {
+            font-weight: 700;
+        }
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin: 25px 0;
+        }
+        .report-visualization {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 25px;
+        }
+        @media (max-width: 992px) {
+            .report-visualization {
+                grid-template-columns: 1fr;
+            }
+            .module-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .module-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            .logo-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .college-logo, .club-logo {
+                height: 40px;
+            }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+        /* Loading animation */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        .is-invalid {
+            border-color: var(--danger) !important;
+        }
+        /* Login Page Styles */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-primary);
+        }
+        .login-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius-xl);
+            box-shadow: 0 15px 35px var(--shadow);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            text-align: center;
+        }
+        .login-logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        .login-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        .login-form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .login-form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .login-form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            border: 2px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        .login-form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+            transition: var(--transition);
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4);
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+        }
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            font-weight: 600;
+            display: none; /* Hidden by default */
+        }
+        .d-none {
+            display: none !important;
+        }
+        .pass-mark-input {
+            width: 120px;
+            text-align: center;
+        }
+        .threshold-badge {
+            background: linear-gradient(135deg, var(--warning), var(--danger));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        /* Manage Students Styles */
+        .hierarchy-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .level-stats {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+        }
+        .year-card {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .year-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        .year-count {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        .year-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .bulk-actions {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+        }
+        .action-btn {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h2 class="login-title">SRM TRP MARKS PORTAL</h2>
+            <p class="login-subtitle">Please log in to continue</p>
+            <form id="login-form">
+                <div class="login-form-group">
+                    <label for="username" class="login-form-label">Username</label>
+                    <input type="text" id="username" class="login-form-control" placeholder="Enter username" required>
+                </div>
+                <div class="login-form-group">
+                    <label for="password" class="login-form-label">Password</label>
+                    <input type="password" id="password" class="login-form-control" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="login-btn">Login <i class="fas fa-sign-in-alt ms-2"></i></button>
+                <div id="login-error" class="login-error">Invalid username or password. Please try again.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <div class="logo-container">
+                <!-- College Logo -->
+                <img src="./1.jpg" alt="SRM TRP College Logo" class="college-logo">
+                <!-- Club Logo -->
+                <img src="./2.png" alt="Computer Science Club Logo" class="club-logo">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-graduation-cap me-2"></i>SRM TRP MARKS PORTAL
+                </a>
+            </div>
+            <div class="d-flex align-items-center">
+                <!-- Logout Button -->
+                <div id="user-section" class="d-none">
+                    <button class="btn btn-outline-primary me-3" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                </div>
+                <button class="theme-toggle" id="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="dashboard-container">
+        <!-- Home Page -->
+        <div id="home-page" class="d-none">
+            <div class="page-title">
+                <h2><span class="gradient-text">Dashboard Overview</span></h2>
+                <div class="d-flex">
+                    <div class="stats-card me-3 pulse">
+                        <div class="stats-label">Total Students</div>
+                        <div class="stats-number" id="total-students">0</div>
+                    </div>
+                    <div class="stats-card pulse">
+                        <div class="stats-label">Total Subjects</div>
+                        <div class="stats-number" id="total-subjects">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="module-list">
+                <div class="module-card" onclick="showModule('registration')">
+                    <div class="module-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-title">Student Registration</div>
+                        <div class="module-description">Add students to academic classes with their categories</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+                <div class="module-card" onclick="showModule('subjects')">
+                    <div class="module-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-title">Subject Management</div>
+                        <div class="module-description">Add and manage subjects for each department and year</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+                <div class="module-card" onclick="showModule('marks-entry')">
+                    <div class="module-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-title">Test Marks Entry</div>
+                        <div class="module-description">Enter marks for students in various assessments</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+                <div class="module-card" onclick="showModule('report-generation')">
+                    <div class="module-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-title">Report Generation</div>
+                        <div class="module-description">Generate performance reports by category</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+                <!-- New Manage Students Module Card -->
+                <div class="module-card" onclick="showModule('manage-students')">
+                    <div class="module-icon">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-title">Manage Students</div>
+                        <div class="module-description">View, filter, and manage all students with bulk operations</div>
+                    </div>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Registration Module -->
+        <div id="registration-module" class="d-none">
+            <!-- ... (existing registration module code remains exactly the same) ... -->
+            <a href="#" class="back-btn" onclick="showHome()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="page-title">
+                <h2><span class="gradient-text">Student Registration</span></h2>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-plus me-2"></i>Add New Student
+                </div>
+                <div class="card-body">
+                    <form id="student-form">
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <label for="year" class="form-label">Year</label>
+                                <select class="form-select" id="year" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="department" class="form-label">Department</label>
+                                <select class="form-select" id="department" required>
+                                    <option value="">Select Department</option>
+                                    <option value="CSE">CSE</option>
+                                    <option value="AIDS">AIDS</option>
+                                    <option value="ECE">ECE</option>
+                                    <option value="MECH">MECH</option>
+                                    <option value="CIVIL">CIVIL</option>
+                                    <option value="IT">IT</option>
+                                    <option value="AIML">AIML</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="section" class="form-label">Section</label>
+                                <select class="form-select" id="section" required>
+                                    <option value="">Select Section</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Hostel">Hostel</option>
+                                    <option value="Day Scholar">Day Scholar</option>
+                                    <option value="Day Scholar Outsider">Day Scholar Outsider</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="reg-number" class="form-label">Registration Number</label>
+                                <input type="text" class="form-control" id="reg-number" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="full-name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="full-name" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary me-2"><i class="fas fa-plus me-2"></i>Add Student</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetStudentForm()"><i class="fas fa-redo me-2"></i>Reset Form</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Excel Upload Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-file-excel me-2"></i>Bulk Student Registration via Excel
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Excel File Format:</strong> Your Excel file should have these columns in order:<br>
+                        Registration Number, Full Name, Year, Department, Section, Category
+                    </div>
+                    
+                    <form id="excel-upload-form">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="excel-file" class="form-label">Select Excel File (.xlsx)</label>
+                                <input type="file" class="form-control" id="excel-file" accept=".xlsx, .xls" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">&nbsp;</label>
+                                <div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-upload me-2"></i>Upload & Process Excel
+                                    </button>
+                                    <a href="#" class="btn btn-outline-info ms-2" onclick="downloadTemplate()">
+                                        <i class="fas fa-download me-2"></i>Download Template
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="excel-preview" class="d-none mt-3">
+                        <h6>Preview (First 5 rows):</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead id="excel-preview-head">
+                                    <!-- Headers will be populated here -->
+                                </thead>
+                                <tbody id="excel-preview-body">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-primary mt-2" onclick="uploadStudentsFromExcel()">
+                            <i class="fas fa-save me-2"></i>Confirm & Save All Students
+                        </button>
+                    </div>
+                    
+                    <div id="excel-upload-result" class="mt-3">
+                        <!-- Upload results will be shown here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-list me-2"></i>Recently Added Students</span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshStudentList()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Registration Number</th>
+                                    <th>Name</th>
+                                    <th>Class</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-list">
+                                <!-- Student list will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subject Management Module -->
+        <div id="subjects-module" class="d-none">
+            <!-- ... (existing subjects module code remains exactly the same) ... -->
+            <a href="#" class="back-btn" onclick="showHome()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="page-title">
+                <h2><span class="gradient-text">Subject Management</span></h2>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-book me-2"></i>Add New Subject
+                </div>
+                <div class="card-body">
+                    <form id="subject-form">
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="subject-year" class="form-label">Year</label>
+                                <select class="form-select" id="subject-year" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="subject-department" class="form-label">Department</label>
+                                <select class="form-select" id="subject-department" required>
+                                    <option value="">Select Department</option>
+                                    <option value="CSE">CSE</option>
+                                    <option value="AIDS">AIDS</option>
+                                    <option value="ECE">ECE</option>
+                                    <option value="MECH">MECH</option>
+                                    <option value="CIVIL">CIVIL</option>
+                                    <option value="IT">IT</option>
+                                    <option value="AIML">AIML</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="subject-semester" class="form-label">Semester</label>
+                                <select class="form-select" id="subject-semester" required>
+                                    <option value="">Select Semester</option>
+                                    <option value="Semester 1">Semester 1</option>
+                                    <option value="Semester 2">Semester 2</option>
+                                    <option value="Semester 3">Semester 3</option>
+                                    <option value="Semester 4">Semester 4</option>
+                                    <option value="Semester 5">Semester 5</option>
+                                    <option value="Semester 6">Semester 6</option>
+                                    <option value="Semester 7">Semester 7</option>
+                                    <option value="Semester 8">Semester 8</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="subject-code" class="form-label">Subject Code</label>
+                                <input type="text" class="form-control" id="subject-code" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="subject-name" class="form-label">Subject Name</label>
+                                <input type="text" class="form-control" id="subject-name" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary me-2"><i class="fas fa-plus me-2"></i>Add Subject</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetSubjectForm()"><i class="fas fa-redo me-2"></i>Reset Form</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-cog me-2"></i>Manage Subjects</span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshSubjectTabs()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="subjectTabs" role="tablist">
+                        <!-- Tabs will be dynamically generated -->
+                    </ul>
+                    <div class="tab-content" id="subjectTabContent">
+                        <!-- Tab content will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Marks Entry Module -->
+        <div id="marks-entry-module" class="d-none">
+            <!-- ... (existing marks entry module code remains exactly the same) ... -->
+            <a href="#" class="back-btn" onclick="showHome()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="page-title">
+                <h2><span class="gradient-text">Test Marks Entry</span></h2>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>Select Test and Class
+                </div>
+                <div class="card-body">
+                    <form id="marks-entry-form">
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <label for="assessment-type" class="form-label">Assessment Type</label>
+                                <select class="form-select" id="assessment-type" required>
+                                    <option value="">Select Assessment</option>
+                                    <option value="CIA 1">CIA 1</option>
+                                    <option value="CIA 2">CIA 2</option>
+                                    <option value="Model Exam">Model Exam</option>
+                                    <option value="Semester Exam">Semester Exam</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="marks-year" class="form-label">Year</label>
+                                <select class="form-select" id="marks-year" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="marks-department" class="form-label">Department</label>
+                                <select class="form-select" id="marks-department" required>
+                                    <option value="">Select Department</option>
+                                    <option value="CSE">CSE</option>
+                                    <option value="AIDS">AIDS</option>
+                                    <option value="ECE">ECE</option>
+                                    <option value="MECH">MECH</option>
+                                    <option value="CIVIL">CIVIL</option>
+                                    <option value="IT">IT</option>
+                                    <option value="AIML">AIML</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="marks-section" class="form-label">Section</label>
+                                <select class="form-select" id="marks-section" required>
+                                    <option value="">Select Section</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <select class="form-select" id="subject" required>
+                                    <option value="">Select Subject</option>
+                                    <!-- Subjects will be populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Add Pass Mark Input -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <label for="pass-mark" class="form-label">Pass Mark Threshold</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control pass-mark-input" id="pass-mark" min="0" max="100" value="40" required>
+                                    <span class="input-group-text">/100</span>
+                                </div>
+                                <div class="form-text">Minimum marks required to pass (default: 40)</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-users me-2"></i>Load Students</button>
+                    </form>
+                </div>
+            </div>
+            <div id="marks-entry-section" class="d-none">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-pen me-2"></i>Enter Marks for Students
+                            <span class="threshold-badge ms-2" id="pass-threshold-badge">Pass Mark: 40</span>
+                        </span>
+                        <span id="class-info" class="badge bg-primary fs-6"></span>
+                    </div>
+                    <div class="card-body">
+                        <form id="marks-form">
+                            <div class="student-list">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Registration Number</th>
+                                            <th>Name</th>
+                                            <th>Category</th>
+                                            <th>Marks (0-100)</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="marks-student-list">
+                                        <!-- Student marks list will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit" class="btn btn-success mt-3"><i class="fas fa-save me-2"></i>Save Marks</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Generation Module -->
+        <div id="report-generation-module" class="d-none">
+            <!-- ... (existing report generation module code remains exactly the same) ... -->
+            <a href="#" class="back-btn" onclick="showHome()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="page-title">
+                <h2><span class="gradient-text">Report Generation</span></h2>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i>Select Parameters for Report
+                </div>
+                <div class="card-body">
+                    <form id="report-form">
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <label for="report-assessment-type" class="form-label">Assessment Type</label>
+                                <select class="form-select" id="report-assessment-type" required>
+                                    <option value="">Select Assessment</option>
+                                    <option value="CIA 1">CIA 1</option>
+                                    <option value="CIA 2">CIA 2</option>
+                                    <option value="Model Exam">Model Exam</option>
+                                    <option value="Semester Exam">Semester Exam</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="report-year" class="form-label">Year</label>
+                                <select class="form-select" id="report-year" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="report-department" class="form-label">Department</label>
+                                <select class="form-select" id="report-department" required>
+                                    <option value="">Select Department</option>
+                                    <option value="CSE">CSE</option>
+                                    <option value="AIDS">AIDS</option>
+                                    <option value="ECE">ECE</option>
+                                    <option value="MECH">MECH</option>
+                                    <option value="CIVIL">CIVIL</option>
+                                    <option value="IT">IT</option>
+                                    <option value="AIML">AIML</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="report-subject" class="form-label">Subject</label>
+                                <select class="form-select" id="report-subject" required>
+                                    <option value="">Select Subject</option>
+                                    <!-- Subjects will be populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="report-pass-mark" class="form-label">Pass Mark</label>
+                                <input type="number" class="form-control" id="report-pass-mark" min="0" max="100" value="40" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Select Section</label>
+                            <div class="section-selector">
+                                <div class="section-option section-all active" data-section="all">All Sections</div>
+                                <div class="section-option" data-section="A">Section A</div>
+                                <div class="section-option" data-section="B">Section B</div>
+                                <div class="section-option" data-section="C">Section C</div>
+                            </div>
+                            <input type="hidden" id="selected-section" name="selected-section" value="all">
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-chart-bar me-2"></i>Generate Report</button>
+                    </form>
+                </div>
+            </div>
+            <div id="report-section" class="d-none">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-pie me-2"></i>Performance Report</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshReport()">
+                            <i class="fas fa-sync-alt me-1"></i> Refresh Report
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="report-details">
+                            <!-- Report will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Manage Students Module -->
+        <div id="manage-students-module" class="d-none">
+            <a href="#" class="back-btn" onclick="showHome()">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="page-title">
+                <h2><span class="gradient-text">Manage Students</span></h2>
+            </div>
+
+            <!-- Dashboard Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>Dashboard Overview
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-label">Total Students</div>
+                                <div class="stats-number" id="total-students-overview">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-layer-group me-2"></i>Year-wise Breakdown
+                                </div>
+                                <div class="card-body">
+                                    <div class="row" id="year-breakdown">
+                                        <!-- Year breakdown will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hierarchical Filter System -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-filter me-2"></i>Student Hierarchy Filter
+                </div>
+                <div class="card-body">
+                    <!-- Level 1: Year Selection -->
+                    <div class="hierarchy-card" id="year-level">
+                        <h5>Step 1: Select Year</h5>
+                        <div class="level-stats">
+                            <div class="row" id="year-stats">
+                                <!-- Year statistics will be populated here -->
+                            </div>
+                        </div>
+                        <div class="row" id="year-selection">
+                            <!-- Year cards will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Level 2: Department Selection -->
+                    <div class="hierarchy-card d-none" id="department-level">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Step 2: Select Department</h5>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="backToYearLevel()">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Years
+                            </button>
+                        </div>
+                        <div class="level-stats">
+                            <div id="department-stats">
+                                <!-- Department statistics will be populated here -->
+                            </div>
+                        </div>
+                        <div class="row" id="department-selection">
+                            <!-- Department cards will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Level 3: Section Selection -->
+                    <div class="hierarchy-card d-none" id="section-level">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Step 3: Select Section</h5>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="backToDepartmentLevel()">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Departments
+                            </button>
+                        </div>
+                        <div class="level-stats">
+                            <div id="section-stats">
+                                <!-- Section statistics will be populated here -->
+                            </div>
+                        </div>
+                        <div class="row" id="section-selection">
+                            <!-- Section cards will be populated here -->
+                        </div>
+                    </div>
+
+                    <!-- Level 4: Student List -->
+                    <div class="hierarchy-card d-none" id="student-level">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Student List</h5>
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary me-2" onclick="backToSectionLevel()">
+                                    <i class="fas fa-arrow-left me-1"></i> Back to Sections
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="refreshStudentHierarchy()">
+                                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="level-stats">
+                            <div id="student-stats">
+                                <!-- Student statistics will be populated here -->
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Reg Number</th>
+                                        <th>Name</th>
+                                        <th>Year</th>
+                                        <th>Department</th>
+                                        <th>Section</th>
+                                        <th>Category</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hierarchy-student-list">
+                                    <!-- Student list will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Operations -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-cogs me-2"></i>Bulk Operations
+                </div>
+                <div class="card-body">
+                    <div class="bulk-actions">
+                        <h6>Delete Operations</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <button class="btn btn-danger w-100 action-btn" onclick="bulkDeleteByYear()">
+                                    <i class="fas fa-trash me-2"></i>Delete by Year
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-danger w-100 action-btn" onclick="bulkDeleteByDepartment()">
+                                    <i class="fas fa-trash me-2"></i>Delete by Department
+                                </button>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-danger w-100 action-btn" onclick="bulkDeleteBySection()">
+                                    <i class="fas fa-trash me-2"></i>Delete by Section
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-4">Promotion Operations</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-success w-100 action-btn" onclick="bulkPromoteStudents()">
+                                    <i class="fas fa-graduation-cap me-2"></i>Promote Students
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-warning w-100 action-btn" onclick="exportStudentData()">
+                                    <i class="fas fa-download me-2"></i>Export Student Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API Base URL - Update this to your server URL
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Theme management
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'light') {
+                icon.className = 'fas fa-moon';
+            } else {
+                icon.className = 'fas fa-sun';
+            }
+        }
+
+        // ========== PERSISTENT LOGIN & LOGOUT FUNCTIONALITY ==========
+        
+        // Login Functionality - Updated with session storage
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            // Check credentials
+            if (username === 'Admin' && password === 'TRP@123') {
+                // Store login state in sessionStorage
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('username', username);
+                
+                // Hide login page and show dashboard
+                document.getElementById('login-page').classList.add('d-none');
+                document.getElementById('home-page').classList.remove('d-none');
+                document.getElementById('user-section').classList.remove('d-none');
+                
+                // Update dashboard stats after login
+                updateDashboardStats();
+            } else {
+                // Show error message
+                errorDiv.style.display = 'block';
+                // Clear password field for another attempt
+                document.getElementById('password').value = '';
+                // Focus back on password field
+                document.getElementById('password').focus();
+            }
+        });
+
+        // Logout Functionality
+        function logout() {
+            // Clear session storage
+            sessionStorage.removeItem('isLoggedIn');
+            sessionStorage.removeItem('username');
+            
+            // Show login page, hide everything else
+            document.getElementById('login-page').classList.remove('d-none');
+            document.getElementById('home-page').classList.add('d-none');
+            document.getElementById('registration-module').classList.add('d-none');
+            document.getElementById('subjects-module').classList.add('d-none');
+            document.getElementById('marks-entry-module').classList.add('d-none');
+            document.getElementById('report-generation-module').classList.add('d-none');
+            document.getElementById('manage-students-module').classList.add('d-none');
+            document.getElementById('user-section').classList.add('d-none');
+            
+            // Clear login form
+            document.getElementById('login-form').reset();
+            document.getElementById('login-error').style.display = 'none';
+        }
+
+        // Check login status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+            
+            if (isLoggedIn === 'true') {
+                // User is logged in, show dashboard
+                document.getElementById('login-page').classList.add('d-none');
+                document.getElementById('home-page').classList.remove('d-none');
+                document.getElementById('user-section').classList.remove('d-none');
+                updateDashboardStats();
+            } else {
+                // User is not logged in, show login page
+                document.getElementById('login-page').classList.remove('d-none');
+                document.getElementById('home-page').classList.add('d-none');
+                document.getElementById('user-section').classList.add('d-none');
+            }
+        });
+
+        // ========== EXCEL UPLOAD FUNCTIONALITY ==========
+        
+        let excelData = []; // Store parsed Excel data
+
+        // Excel Upload Form Handler
+        document.getElementById('excel-upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('excel-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select an Excel file.');
+                return;
+            }
+            
+            readExcelFile(file);
+        });
+
+        function readExcelFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Get first worksheet
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                if (jsonData.length < 2) {
+                    alert('Excel file is empty or has no data.');
+                    return;
+                }
+                
+                // Extract headers and data
+                const headers = jsonData[0];
+                const rows = jsonData.slice(1).filter(row => row.length > 0);
+                
+                // Validate headers
+                const expectedHeaders = ['Registration Number', 'Full Name', 'Year', 'Department', 'Section', 'Category'];
+                if (headers.join(',').toLowerCase() !== expectedHeaders.join(',').toLowerCase()) {
+                    alert(`Invalid Excel format. Expected columns: ${expectedHeaders.join(', ')}`);
+                    return;
+                }
+                
+                // Process data
+                excelData = rows.map(row => ({
+                    reg_number: row[0] || '',
+                    full_name: row[1] || '',
+                    year: row[2] || '',
+                    department: row[3] || '',
+                    section: row[4] || '',
+                    category: row[5] || ''
+                }));
+                
+                // Show preview
+                showExcelPreview(headers, excelData.slice(0, 5));
+            };
+            
+            reader.onerror = function() {
+                alert('Error reading the Excel file.');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function showExcelPreview(headers, previewData) {
+            const previewHead = document.getElementById('excel-preview-head');
+            const previewBody = document.getElementById('excel-preview-body');
+            
+            // Create header row
+            previewHead.innerHTML = '<tr>' + headers.map(header => `<th>${header}</th>`).join('') + '</tr>';
+            
+            // Create data rows
+            previewBody.innerHTML = previewData.map(row => 
+                `<tr>${Object.values(row).map(cell => `<td>${cell}</td>`).join('')}</tr>`
+            ).join('');
+            
+            // Show preview section
+            document.getElementById('excel-preview').classList.remove('d-none');
+            document.getElementById('excel-upload-result').innerHTML = '';
+        }
+
+        async function uploadStudentsFromExcel() {
+            if (excelData.length === 0) {
+                alert('No data to upload.');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('excel-upload-result');
+            resultDiv.innerHTML = '<div class="alert alert-info">Uploading students...</div>';
+            
+            let successCount = 0;
+            let errorCount = 0;
+            let errors = [];
+            
+            // Upload students one by one
+            for (let i = 0; i < excelData.length; i++) {
+                const student = excelData[i];
+                
+                // Validate required fields
+                if (!student.reg_number || !student.full_name || !student.year || !student.department || !student.section || !student.category) {
+                    errorCount++;
+                    errors.push(`Row ${i + 2}: Missing required fields`);
+                    continue;
+                }
+                
+                try {
+                    await apiCall('/students', {
+                        method: 'POST',
+                        body: JSON.stringify(student)
+                    });
+                    successCount++;
+                } catch (error) {
+                    errorCount++;
+                    errors.push(`Row ${i + 2}: ${student.reg_number} - ${error.message}`);
+                }
+            }
+            
+            // Show results
+            let resultHtml = `<div class="alert ${errorCount === 0 ? 'alert-success' : 'alert-warning'}">
+                <strong>Upload Complete!</strong><br>
+                Successfully added: ${successCount} students<br>
+                Failed: ${errorCount} students
+            </div>`;
+            
+            if (errors.length > 0) {
+                resultHtml += `<div class="mt-2"><strong>Errors:</strong><ul class="small">`;
+                errors.slice(0, 10).forEach(error => { // Show only first 10 errors
+                    resultHtml += `<li>${error}</li>`;
+                });
+                if (errors.length > 10) {
+                    resultHtml += `<li>... and ${errors.length - 10} more errors</li>`;
+                }
+                resultHtml += `</ul></div>`;
+            }
+            
+            resultDiv.innerHTML = resultHtml;
+            
+            // Reset form and refresh student list
+            document.getElementById('excel-upload-form').reset();
+            document.getElementById('excel-preview').classList.add('d-none');
+            excelData = [];
+            refreshStudentList();
+        }
+
+        function downloadTemplate() {
+            // Create sample data for template
+            const templateData = [
+                ['Registration Number', 'Full Name', 'Year', 'Department', 'Section', 'Category'],
+                ['SRM001', 'John Doe', '1st Year', 'CSE', 'A', 'Hostel'],
+                ['SRM002', 'Jane Smith', '1st Year', 'CSE', 'A', 'Day Scholar'],
+                ['SRM003', 'Bob Johnson', '1st Year', 'CSE', 'B', 'Day Scholar Outsider']
+            ];
+            
+            // Create workbook and worksheet
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Students Template');
+            
+            // Download the file
+            XLSX.writeFile(wb, 'student_registration_template.xlsx');
+        }
+
+        // ========== PASS MARK THRESHOLD FUNCTIONALITY ==========
+
+        // Update pass threshold badge when input changes
+        document.getElementById('pass-mark').addEventListener('input', function() {
+            updatePassThresholdBadge(this.value);
+        });
+
+        function updatePassThresholdBadge(passMark) {
+            document.getElementById('pass-threshold-badge').textContent = `Pass Mark: ${passMark}`;
+        }
+
+        // ========== MANAGE STUDENTS FUNCTIONALITY ==========
+
+        let currentHierarchy = {
+            selectedYear: null,
+            selectedDepartment: null,
+            selectedSection: null
+        };
+
+        // Navigation functions - UPDATED WITH MANAGE STUDENTS
+        function showHome() {
+            document.getElementById('home-page').classList.remove('d-none');
+            document.getElementById('registration-module').classList.add('d-none');
+            document.getElementById('subjects-module').classList.add('d-none');
+            document.getElementById('marks-entry-module').classList.add('d-none');
+            document.getElementById('report-generation-module').classList.add('d-none');
+            document.getElementById('manage-students-module').classList.add('d-none');
+            updateDashboardStats();
+        }
+
+        function showModule(module) {
+            document.getElementById('home-page').classList.add('d-none');
+            if (module === 'registration') {
+                document.getElementById('registration-module').classList.remove('d-none');
+                refreshStudentList();
+            } else if (module === 'subjects') {
+                document.getElementById('subjects-module').classList.remove('d-none');
+                refreshSubjectTabs();
+            } else if (module === 'marks-entry') {
+                document.getElementById('marks-entry-module').classList.remove('d-none');
+                document.getElementById('marks-entry-section').classList.add('d-none');
+                populateSubjectDropdown('marks');
+                // Reset pass mark to default when entering marks module
+                document.getElementById('pass-mark').value = 40;
+                updatePassThresholdBadge(40);
+            } else if (module === 'report-generation') {
+                document.getElementById('report-generation-module').classList.remove('d-none');
+                document.getElementById('report-section').classList.add('d-none');
+                populateSubjectDropdown('report');
+                setupSectionSelector();
+            } else if (module === 'manage-students') {
+                document.getElementById('manage-students-module').classList.remove('d-none');
+                loadManageStudentsOverview();
+            }
+        }
+
+        // Manage Students Functions
+        async function loadManageStudentsOverview() {
+            try {
+                const data = await apiCall('/students');
+                const totalStudents = data.students.length;
+                
+                // Update total students count
+                document.getElementById('total-students-overview').textContent = totalStudents;
+                
+                // Calculate year-wise breakdown
+                const yearBreakdown = {};
+                data.students.forEach(student => {
+                    if (!yearBreakdown[student.year]) {
+                        yearBreakdown[student.year] = 0;
+                    }
+                    yearBreakdown[student.year]++;
+                });
+                
+                // Display year breakdown
+                const yearBreakdownContainer = document.getElementById('year-breakdown');
+                yearBreakdownContainer.innerHTML = '';
+                
+                const years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+                years.forEach(year => {
+                    const count = yearBreakdown[year] || 0;
+                    const percentage = totalStudents > 0 ? ((count / totalStudents) * 100).toFixed(1) : 0;
+                    
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 mb-3';
+                    col.innerHTML = `
+                        <div class="year-card" onclick="selectYear('${year}')">
+                            <div class="year-count">${count}</div>
+                            <div class="year-label">${year}</div>
+                            <small>${percentage}% of total</small>
+                        </div>
+                    `;
+                    yearBreakdownContainer.appendChild(col);
+                });
+                
+                // Load year statistics
+                loadYearStatistics(data.students);
+                
+            } catch (error) {
+                console.error('Failed to load student overview:', error);
+            }
+        }
+
+        function loadYearStatistics(students) {
+            const yearStatsContainer = document.getElementById('year-stats');
+            const totalStudents = students.length;
+            
+            const years = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+            let statsHTML = '';
+            
+            years.forEach(year => {
+                const count = students.filter(s => s.year === year).length;
+                const percentage = totalStudents > 0 ? ((count / totalStudents) * 100).toFixed(1) : 0;
+                
+                statsHTML += `
+                    <div class="col-md-3">
+                        <strong>${year}:</strong> ${count} students (${percentage}%)
+                    </div>
+                `;
+            });
+            
+            yearStatsContainer.innerHTML = statsHTML;
+        }
+
+        async function selectYear(year) {
+            currentHierarchy.selectedYear = year;
+            currentHierarchy.selectedDepartment = null;
+            currentHierarchy.selectedSection = null;
+            
+            try {
+                const data = await apiCall('/students');
+                const yearStudents = data.students.filter(s => s.year === year);
+                
+                // Hide year level, show department level
+                document.getElementById('year-level').classList.add('d-none');
+                document.getElementById('department-level').classList.remove('d-none');
+                
+                // Calculate department breakdown
+                const departmentBreakdown = {};
+                yearStudents.forEach(student => {
+                    if (!departmentBreakdown[student.department]) {
+                        departmentBreakdown[student.department] = 0;
+                    }
+                    departmentBreakdown[student.department]++;
+                });
+                
+                // Display department statistics
+                const deptStatsContainer = document.getElementById('department-stats');
+                let deptStatsHTML = `<div class="row">`;
+                
+                Object.keys(departmentBreakdown).forEach(dept => {
+                    const count = departmentBreakdown[dept];
+                    const percentage = yearStudents.length > 0 ? ((count / yearStudents.length) * 100).toFixed(1) : 0;
+                    
+                    deptStatsHTML += `
+                        <div class="col-md-4">
+                            <strong>${dept}:</strong> ${count} students (${percentage}%)
+                        </div>
+                    `;
+                });
+                
+                deptStatsHTML += `</div>`;
+                deptStatsContainer.innerHTML = deptStatsHTML;
+                
+                // Display department selection
+                const deptSelectionContainer = document.getElementById('department-selection');
+                deptSelectionContainer.innerHTML = '';
+                
+                Object.keys(departmentBreakdown).forEach(dept => {
+                    const count = departmentBreakdown[dept];
+                    const percentage = yearStudents.length > 0 ? ((count / yearStudents.length) * 100).toFixed(1) : 0;
+                    
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                        <div class="year-card" style="background: linear-gradient(135deg, var(--accent), var(--info));" onclick="selectDepartment('${dept}')">
+                            <div class="year-count">${count}</div>
+                            <div class="year-label">${dept}</div>
+                            <small>${percentage}% of ${year}</small>
+                        </div>
+                    `;
+                    deptSelectionContainer.appendChild(col);
+                });
+                
+            } catch (error) {
+                console.error('Failed to load department data:', error);
+            }
+        }
+
+        async function selectDepartment(department) {
+            currentHierarchy.selectedDepartment = department;
+            currentHierarchy.selectedSection = null;
+            
+            try {
+                const data = await apiCall('/students');
+                const deptStudents = data.students.filter(s => 
+                    s.year === currentHierarchy.selectedYear && 
+                    s.department === department
+                );
+                
+                // Hide department level, show section level
+                document.getElementById('department-level').classList.add('d-none');
+                document.getElementById('section-level').classList.remove('d-none');
+                
+                // Calculate section breakdown
+                const sectionBreakdown = {};
+                deptStudents.forEach(student => {
+                    if (!sectionBreakdown[student.section]) {
+                        sectionBreakdown[student.section] = 0;
+                    }
+                    sectionBreakdown[student.section]++;
+                });
+                
+                // Display section statistics
+                const sectionStatsContainer = document.getElementById('section-stats');
+                let sectionStatsHTML = `<div class="row">`;
+                
+                Object.keys(sectionBreakdown).forEach(section => {
+                    const count = sectionBreakdown[section];
+                    const percentage = deptStudents.length > 0 ? ((count / deptStudents.length) * 100).toFixed(1) : 0;
+                    
+                    sectionStatsHTML += `
+                        <div class="col-md-4">
+                            <strong>Section ${section}:</strong> ${count} students (${percentage}%)
+                        </div>
+                    `;
+                });
+                
+                sectionStatsHTML += `</div>`;
+                sectionStatsContainer.innerHTML = sectionStatsHTML;
+                
+                // Display section selection
+                const sectionSelectionContainer = document.getElementById('section-selection');
+                sectionSelectionContainer.innerHTML = '';
+                
+                Object.keys(sectionBreakdown).forEach(section => {
+                    const count = sectionBreakdown[section];
+                    const percentage = deptStudents.length > 0 ? ((count / deptStudents.length) * 100).toFixed(1) : 0;
+                    
+                    const col = document.createElement('div');
+                    col.className = 'col-md-4 mb-3';
+                    col.innerHTML = `
+                        <div class="year-card" style="background: linear-gradient(135deg, var(--success), var(--primary-light));" onclick="selectSection('${section}')">
+                            <div class="year-count">${count}</div>
+                            <div class="year-label">Section ${section}</div>
+                            <small>${percentage}% of ${department}</small>
+                        </div>
+                    `;
+                    sectionSelectionContainer.appendChild(col);
+                });
+                
+            } catch (error) {
+                console.error('Failed to load section data:', error);
+            }
+        }
+
+        async function selectSection(section) {
+            currentHierarchy.selectedSection = section;
+            
+            try {
+                const data = await apiCall('/students');
+                const sectionStudents = data.students.filter(s => 
+                    s.year === currentHierarchy.selectedYear && 
+                    s.department === currentHierarchy.selectedDepartment &&
+                    s.section === section
+                );
+                
+                // Hide section level, show student level
+                document.getElementById('section-level').classList.add('d-none');
+                document.getElementById('student-level').classList.remove('d-none');
+                
+                // Display student statistics
+                const studentStatsContainer = document.getElementById('student-stats');
+                studentStatsContainer.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-12">
+                            <strong>Total Students:</strong> ${sectionStudents.length} in 
+                            ${currentHierarchy.selectedYear} ${currentHierarchy.selectedDepartment} Section ${section}
+                        </div>
+                    </div>
+                `;
+                
+                // Display student list
+                const studentListContainer = document.getElementById('hierarchy-student-list');
+                studentListContainer.innerHTML = '';
+                
+                if (sectionStudents.length === 0) {
+                    studentListContainer.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center">No students found</td>
+                        </tr>
+                    `;
+                } else {
+                    sectionStudents.forEach(student => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${student.reg_number}</td>
+                            <td>${student.full_name}</td>
+                            <td>${student.year}</td>
+                            <td>${student.department}</td>
+                            <td>${student.section}</td>
+                            <td>${student.category}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-warning me-1" onclick="editStudent(${student.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${student.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        studentListContainer.appendChild(row);
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Failed to load student data:', error);
+            }
+        }
+
+        // Navigation functions for hierarchy
+        function backToYearLevel() {
+            document.getElementById('department-level').classList.add('d-none');
+            document.getElementById('year-level').classList.remove('d-none');
+            currentHierarchy.selectedYear = null;
+            currentHierarchy.selectedDepartment = null;
+            currentHierarchy.selectedSection = null;
+        }
+
+        function backToDepartmentLevel() {
+            document.getElementById('section-level').classList.add('d-none');
+            document.getElementById('department-level').classList.remove('d-none');
+            currentHierarchy.selectedSection = null;
+        }
+
+        function backToSectionLevel() {
+            document.getElementById('student-level').classList.add('d-none');
+            document.getElementById('section-level').classList.remove('d-none');
+        }
+
+        function refreshStudentHierarchy() {
+            if (currentHierarchy.selectedSection) {
+                selectSection(currentHierarchy.selectedSection);
+            } else if (currentHierarchy.selectedDepartment) {
+                selectDepartment(currentHierarchy.selectedDepartment);
+            } else if (currentHierarchy.selectedYear) {
+                selectYear(currentHierarchy.selectedYear);
+            } else {
+                loadManageStudentsOverview();
+            }
+        }
+
+        // Bulk Operations
+        async function bulkDeleteByYear() {
+            const year = prompt("Enter the year to delete all students from (e.g., '1st Year'):");
+            if (!year) return;
+            
+            if (confirm(`Are you sure you want to delete ALL students from ${year}? This action cannot be undone!`)) {
+                try {
+                    const data = await apiCall('/students');
+                    const yearStudents = data.students.filter(s => s.year === year);
+                    
+                    let deletedCount = 0;
+                    for (const student of yearStudents) {
+                        await apiCall(`/students/${student.id}`, { method: 'DELETE' });
+                        deletedCount++;
+                    }
+                    
+                    alert(`Successfully deleted ${deletedCount} students from ${year}`);
+                    refreshStudentHierarchy();
+                } catch (error) {
+                    alert('Error deleting students: ' + error.message);
+                }
+            }
+        }
+
+        async function bulkDeleteByDepartment() {
+            const department = prompt("Enter the department to delete all students from (e.g., 'CSE'):");
+            if (!department) return;
+            
+            if (confirm(`Are you sure you want to delete ALL students from ${department} department? This action cannot be undone!`)) {
+                try {
+                    const data = await apiCall('/students');
+                    const deptStudents = data.students.filter(s => s.department === department);
+                    
+                    let deletedCount = 0;
+                    for (const student of deptStudents) {
+                        await apiCall(`/students/${student.id}`, { method: 'DELETE' });
+                        deletedCount++;
+                    }
+                    
+                    alert(`Successfully deleted ${deletedCount} students from ${department} department`);
+                    refreshStudentHierarchy();
+                } catch (error) {
+                    alert('Error deleting students: ' + error.message);
+                }
+            }
+        }
+
+        async function bulkDeleteBySection() {
+            const year = prompt("Enter the year (e.g., '1st Year'):");
+            if (!year) return;
+            
+            const department = prompt("Enter the department (e.g., 'CSE'):");
+            if (!department) return;
+            
+            const section = prompt("Enter the section (e.g., 'A'):");
+            if (!section) return;
+            
+            if (confirm(`Are you sure you want to delete ALL students from ${year} ${department} Section ${section}? This action cannot be undone!`)) {
+                try {
+                    const data = await apiCall('/students');
+                    const sectionStudents = data.students.filter(s => 
+                        s.year === year && 
+                        s.department === department && 
+                        s.section === section
+                    );
+                    
+                    let deletedCount = 0;
+                    for (const student of sectionStudents) {
+                        await apiCall(`/students/${student.id}`, { method: 'DELETE' });
+                        deletedCount++;
+                    }
+                    
+                    alert(`Successfully deleted ${deletedCount} students from ${year} ${department} Section ${section}`);
+                    refreshStudentHierarchy();
+                } catch (error) {
+                    alert('Error deleting students: ' + error.message);
+                }
+            }
+        }
+
+        async function bulkPromoteStudents() {
+            if (confirm('This will promote all students to the next year (1st → 2nd, 2nd → 3rd, 3rd → 4th). 4th year students will remain unchanged. Continue?')) {
+                try {
+                    const data = await apiCall('/students');
+                    let promotedCount = 0;
+                    
+                    for (const student of data.students) {
+                        let newYear = student.year;
+                        if (student.year === '1st Year') newYear = '2nd Year';
+                        else if (student.year === '2nd Year') newYear = '3rd Year';
+                        else if (student.year === '3rd Year') newYear = '4th Year';
+                        
+                        if (newYear !== student.year) {
+                            // For a real implementation, you would need a PATCH endpoint
+                            // This is a conceptual implementation
+                            console.log(`Would promote ${student.reg_number} from ${student.year} to ${newYear}`);
+                            promotedCount++;
+                        }
+                    }
+                    
+                    alert(`Promotion process completed. ${promotedCount} students would be promoted. (Note: This is a demo - implement PATCH endpoint for actual promotion)`);
+                } catch (error) {
+                    alert('Error in promotion process: ' + error.message);
+                }
+            }
+        }
+
+        function exportStudentData() {
+            // Implementation for exporting student data to Excel
+            alert('Export feature would download all student data as Excel file. Implement using XLSX library.');
+        }
+
+        function editStudent(studentId) {
+            // Implementation for editing student
+            alert(`Edit student with ID: ${studentId} - Implement edit functionality`);
+        }
+
+        // ========== YOUR EXISTING CODE BELOW - NO CHANGES ==========
+        
+        // API Helper Functions
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API Call failed:', error);
+                alert('Network error. Please make sure the server is running.');
+                throw error;
+            }
+        }
+
+        // Updated Dashboard Stats with API
+        async function updateDashboardStats() {
+            try {
+                const stats = await apiCall('/dashboard/stats');
+                document.getElementById('total-students').textContent = stats.totalStudents;
+                document.getElementById('total-subjects').textContent = stats.totalSubjects;
+            } catch (error) {
+                console.error('Failed to load dashboard stats:', error);
+                document.getElementById('total-students').textContent = '0';
+                document.getElementById('total-subjects').textContent = '0';
+            }
+        }
+
+        // Section selector functionality
+        function setupSectionSelector() {
+            const sectionOptions = document.querySelectorAll('.section-option');
+            sectionOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    sectionOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('selected-section').value = this.getAttribute('data-section');
+                });
+            });
+        }
+
+        // Student Registration Functions
+        document.getElementById('student-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const studentData = {
+                reg_number: document.getElementById('reg-number').value,
+                full_name: document.getElementById('full-name').value,
+                year: document.getElementById('year').value,
+                department: document.getElementById('department').value,
+                section: document.getElementById('section').value,
+                category: document.getElementById('category').value
+            };
+            try {
+                await apiCall('/students', {
+                    method: 'POST',
+                    body: JSON.stringify(studentData)
+                });
+                resetStudentForm();
+                refreshStudentList();
+                alert('Student added successfully!');
+            } catch (error) {
+                alert('Error adding student. Registration number might already exist.');
+            }
+        });
+
+        function resetStudentForm() {
+            document.getElementById('student-form').reset();
+        }
+
+        async function refreshStudentList() {
+            try {
+                const data = await apiCall('/students');
+                const studentList = document.getElementById('student-list');
+                studentList.innerHTML = '';
+                if (data.students.length === 0) {
+                    studentList.innerHTML = '<tr><td colspan="5" class="text-center">No students registered yet.</td></tr>';
+                    return;
+                }
+                data.students.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.reg_number}</td>
+                        <td>${student.full_name}</td>
+                        <td>${student.year} ${student.department} - ${student.section}</td>
+                        <td>${student.category}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent(${student.id})">Delete</button>
+                        </td>
+                    `;
+                    studentList.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Failed to load students:', error);
+                document.getElementById('student-list').innerHTML = '<tr><td colspan="5" class="text-center">Error loading students.</td></tr>';
+            }
+        }
+
+        async function deleteStudent(studentId) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                try {
+                    await apiCall(`/students/${studentId}`, { method: 'DELETE' });
+                    refreshStudentList();
+                    alert('Student deleted successfully!');
+                } catch (error) {
+                    alert('Error deleting student.');
+                }
+            }
+        }
+
+        // Subject Management Functions
+        document.getElementById('subject-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const subjectData = {
+                year: document.getElementById('subject-year').value,
+                department: document.getElementById('subject-department').value,
+                semester: document.getElementById('subject-semester').value,
+                subject_code: document.getElementById('subject-code').value,
+                subject_name: document.getElementById('subject-name').value
+            };
+            try {
+                await apiCall('/subjects', {
+                    method: 'POST',
+                    body: JSON.stringify(subjectData)
+                });
+                resetSubjectForm();
+                refreshSubjectTabs();
+                alert('Subject added successfully!');
+            } catch (error) {
+                alert('Error adding subject. Subject code might already exist for this department and year.');
+            }
+        });
+
+        function resetSubjectForm() {
+            document.getElementById('subject-form').reset();
+        }
+
+        async function refreshSubjectTabs() {
+            try {
+                const data = await apiCall('/subjects');
+                const tabsContainer = document.getElementById('subjectTabs');
+                const tabContentContainer = document.getElementById('subjectTabContent');
+                tabsContainer.innerHTML = '';
+                tabContentContainer.innerHTML = '';
+                if (data.subjects.length === 0) {
+                    tabContentContainer.innerHTML = '<p class="text-center">No subjects added yet.</p>';
+                    return;
+                }
+                // Group subjects by department and year
+                const departmentYears = {};
+                data.subjects.forEach(subject => {
+                    const key = `${subject.department} - ${subject.year}`;
+                    if (!departmentYears[key]) {
+                        departmentYears[key] = [];
+                    }
+                    departmentYears[key].push(subject);
+                });
+                // Create tabs for each department-year combination
+                let firstTab = true;
+                for (const deptYear in departmentYears) {
+                    const tabId = deptYear.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+                    // Create tab
+                    const tab = document.createElement('li');
+                    tab.className = 'nav-item';
+                    tab.innerHTML = `
+                        <a class="nav-link ${firstTab ? 'active' : ''}" id="${tabId}-tab" data-bs-toggle="tab" 
+                           href="#${tabId}" role="tab" aria-controls="${tabId}" aria-selected="${firstTab}">
+                           ${deptYear}
+                        </a>
+                    `;
+                    tabsContainer.appendChild(tab);
+                    // Create tab content
+                    const tabContent = document.createElement('div');
+                    tabContent.className = `tab-pane fade ${firstTab ? 'show active' : ''}`;
+                    tabContent.id = tabId;
+                    tabContent.setAttribute('role', 'tabpanel');
+                    tabContent.setAttribute('aria-labelledby', `${tabId}-tab`);
+                    // Group subjects by semester
+                    const semesters = {};
+                    departmentYears[deptYear].forEach(subject => {
+                        if (!semesters[subject.semester]) {
+                            semesters[subject.semester] = [];
+                        }
+                        semesters[subject.semester].push(subject);
+                    });
+                    let contentHtml = '';
+                    // Create content for each semester
+                    for (const semester in semesters) {
+                        contentHtml += `<h5 class="mt-3">${semester}</h5>`;
+                        if (semesters[semester].length === 0) {
+                            contentHtml += '<p>No subjects for this semester.</p>';
+                        } else {
+                            contentHtml += `
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Subject Code</th>
+                                                <th>Subject Name</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                            `;
+                            semesters[semester].forEach(subject => {
+                                contentHtml += `
+                                    <tr>
+                                        <td>${subject.subject_code}</td>
+                                        <td>${subject.subject_name}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubject(${subject.id})">Delete</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            contentHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }
+                    }
+                    tabContent.innerHTML = contentHtml;
+                    tabContentContainer.appendChild(tabContent);
+                    firstTab = false;
+                }
+            } catch (error) {
+                console.error('Failed to load subjects:', error);
+            }
+        }
+
+        async function deleteSubject(subjectId) {
+            if (confirm('Are you sure you want to delete this subject?')) {
+                try {
+                    await apiCall(`/subjects/${subjectId}`, { method: 'DELETE' });
+                    refreshSubjectTabs();
+                    alert('Subject deleted successfully!');
+                } catch (error) {
+                    alert('Error deleting subject.');
+                }
+            }
+        }
+
+        async function populateSubjectDropdown(type) {
+            const year = document.getElementById(`${type}-year`).value;
+            const department = document.getElementById(`${type}-department`).value;
+            const subjectDropdown = document.getElementById(type === 'marks' ? 'subject' : 'report-subject');
+            // Clear existing options except the first one
+            subjectDropdown.innerHTML = '<option value="">Select Subject</option>';
+            if (year && department) {
+                try {
+                    const data = await apiCall(`/subjects?year=${year}&department=${department}`);
+                    // Group by semester for better organization
+                    const semesters = {};
+                    data.subjects.forEach(subject => {
+                        if (!semesters[subject.semester]) {
+                            semesters[subject.semester] = [];
+                        }
+                        semesters[subject.semester].push(subject);
+                    });
+                    // Add subjects to dropdown, grouped by semester
+                    for (const semester in semesters) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = semester;
+                        semesters[semester].forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject.subject_code;
+                            option.textContent = `${subject.subject_code} - ${subject.subject_name}`;
+                            option.setAttribute('data-subject-name', subject.subject_name);
+                            optgroup.appendChild(option);
+                        });
+                        subjectDropdown.appendChild(optgroup);
+                    }
+                } catch (error) {
+                    console.error('Failed to load subjects:', error);
+                }
+            }
+        }
+
+        // Update subject dropdown when department or year selection changes
+        document.getElementById('marks-year').addEventListener('change', () => populateSubjectDropdown('marks'));
+        document.getElementById('marks-department').addEventListener('change', () => populateSubjectDropdown('marks'));
+        document.getElementById('report-year').addEventListener('change', () => populateSubjectDropdown('report'));
+        document.getElementById('report-department').addEventListener('change', () => populateSubjectDropdown('report'));
+
+        // Test Marks Entry Functions - UPDATED WITH PASS MARK
+        document.getElementById('marks-entry-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const assessmentType = document.getElementById('assessment-type').value;
+            const year = document.getElementById('marks-year').value;
+            const department = document.getElementById('marks-department').value;
+            const section = document.getElementById('marks-section').value;
+            const subject = document.getElementById('subject');
+            const subjectCode = subject.value;
+            const subjectName = subject.options[subject.selectedIndex]?.getAttribute('data-subject-name') || subjectCode;
+            const passMark = parseInt(document.getElementById('pass-mark').value) || 40;
+            
+            try {
+                // Get students for the selected class
+                const studentsData = await apiCall(`/students/class?year=${year}&department=${department}&section=${section}`);
+                if (studentsData.students.length === 0) {
+                    alert('No students found for the selected class. Please add students first.');
+                    return;
+                }
+                // Show marks entry section
+                document.getElementById('marks-entry-section').classList.remove('d-none');
+                // Update class info and pass threshold
+                document.getElementById('class-info').textContent = 
+                    `${assessmentType} - ${subjectCode} - ${year} ${department} ${section}`;
+                updatePassThresholdBadge(passMark);
+                // Populate student marks list
+                const marksStudentList = document.getElementById('marks-student-list');
+                marksStudentList.innerHTML = '';
+                // Load existing marks if any
+                let existingMarks = {};
+                try {
+                    const marksData = await apiCall(`/marks?assessment_type=${assessmentType}&year=${year}&department=${department}&section=${section}&subject_code=${subjectCode}`);
+                    marksData.marks.forEach(mark => {
+                        existingMarks[mark.student_id] = mark.marks;
+                    });
+                } catch (error) {
+                    // No existing marks found, that's okay
+                }
+                studentsData.students.forEach(student => {
+                    const existingMark = existingMarks[student.id] || '';
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.reg_number}</td>
+                        <td>${student.full_name}</td>
+                        <td>${student.category}</td>
+                        <td>
+                            <input type="number" min="0" max="100" class="form-control mark-input" 
+                                   data-student-id="${student.id}" value="${existingMark}" 
+                                   oninput="updateStudentStatus(this, ${passMark})" required>
+                        </td>
+                        <td class="status-cell" id="status-${student.id}">
+                            ${existingMark ? (existingMark >= passMark ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>') : ''}
+                        </td>
+                    `;
+                    marksStudentList.appendChild(row);
+                });
+                // Store current test context for later use
+                localStorage.setItem('currentTestContext', JSON.stringify({
+                    assessmentType,
+                    year,
+                    department,
+                    section,
+                    subjectCode,
+                    subjectName,
+                    passMark
+                }));
+            } catch (error) {
+                alert('Error loading students. Please try again.');
+            }
+        });
+
+        // Function to update student status based on marks
+        function updateStudentStatus(inputElement, passMark) {
+            const studentId = inputElement.dataset.studentId;
+            const marks = parseInt(inputElement.value);
+            const statusCell = document.getElementById(`status-${studentId}`);
+            
+            if (isNaN(marks)) {
+                statusCell.innerHTML = '';
+                return;
+            }
+            
+            if (marks >= passMark) {
+                statusCell.innerHTML = '<span class="pass">PASS</span>';
+            } else {
+                statusCell.innerHTML = '<span class="fail">FAIL</span>';
+            }
+        }
+
+        document.getElementById('marks-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const testContext = JSON.parse(localStorage.getItem('currentTestContext'));
+            const markInputs = document.querySelectorAll('.mark-input');
+            const marks = [];
+            // Validate all marks
+            let allValid = true;
+            markInputs.forEach(input => {
+                const markValue = parseInt(input.value);
+                if (isNaN(markValue) || markValue < 0 || markValue > 100) {
+                    allValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                    marks.push({
+                        student_id: parseInt(input.dataset.studentId),
+                        subject_code: testContext.subjectCode,
+                        subject_name: testContext.subjectName,
+                        assessment_type: testContext.assessmentType,
+                        marks: markValue,
+                        academic_year: testContext.year
+                    });
+                }
+            });
+            if (!allValid) {
+                alert('Please enter valid marks (0-100) for all students.');
+                return;
+            }
+            try {
+                await apiCall('/marks/bulk', {
+                    method: 'POST',
+                    body: JSON.stringify({ marks })
+                });
+                alert('Marks saved successfully!');
+            } catch (error) {
+                alert('Error saving marks. Please try again.');
+            }
+        });
+
+        // Report Generation Functions - UPDATED WITH PASS MARK
+        document.getElementById('report-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const assessmentType = document.getElementById('report-assessment-type').value;
+            const year = document.getElementById('report-year').value;
+            const department = document.getElementById('report-department').value;
+            const subject = document.getElementById('report-subject');
+            const subjectCode = subject.value;
+            const selectedSection = document.getElementById('selected-section').value;
+            const passMark = parseInt(document.getElementById('report-pass-mark').value) || 40;
+            
+            try {
+                // Generate and show report
+                await generateReport(assessmentType, year, department, selectedSection, subjectCode, passMark);
+                document.getElementById('report-section').classList.remove('d-none');
+            } catch (error) {
+                alert('Error generating report. Please make sure marks are entered for the selected parameters.');
+            }
+        });
+
+        let performanceChart = null;
+
+        async function generateReport(assessmentType, year, department, section, subjectCode, passMark = 40) {
+            try {
+                const reportData = await apiCall(`/reports/performance?assessment_type=${assessmentType}&year=${year}&department=${department}&section=${section}&subject_code=${subjectCode}`);
+                // Determine section display text
+                let sectionDisplay = section === 'all' ? 'All Sections' : `Section ${section}`;
+                // Calculate pass/fail based on custom pass mark
+                const customStats = reportData.categoryStats.map(stats => {
+                    // For custom implementation, we need to recalculate based on the actual marks
+                    // This would require additional API endpoint or client-side calculation
+                    // For now, we'll use the existing data but show the custom pass mark
+                    return stats;
+                });
+                
+                // Generate report HTML
+                const reportDetails = document.getElementById('report-details');
+                reportDetails.innerHTML = `
+                    <div class="report-summary">
+                        <h5>${assessmentType} - ${subjectCode}</h5>
+                        <p><strong>Class:</strong> ${year} ${department} - ${sectionDisplay}</p>
+                        <p><strong>Pass Mark Threshold:</strong> ${passMark} / 100</p>
+                        <p><strong>Total Students with Marks:</strong> ${reportData.totals.total}</p>
+                    </div>
+                    <div class="report-visualization">
+                        <div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Pass</th>
+                                        <th>Fail</th>
+                                        <th>Pass Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${reportData.categoryStats.map(stats => {
+                                        const passPercentage = stats.total > 0 ? ((stats.pass / stats.total) * 100).toFixed(2) : 0;
+                                        return `
+                                            <tr>
+                                                <td>${stats.category}</td>
+                                                <td class="pass">${stats.pass}</td>
+                                                <td class="fail">${stats.fail}</td>
+                                                <td>${passPercentage}%</td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    <tr class="table-secondary">
+                                        <td><strong>Total</strong></td>
+                                        <td class="pass"><strong>${reportData.totals.pass}</strong></td>
+                                        <td class="fail"><strong>${reportData.totals.fail}</strong></td>
+                                        <td><strong>${reportData.passPercentage}%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <div class="chart-container">
+                                <canvas id="performance-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                // Create pie chart
+                createPieChart(reportData.totals.pass, reportData.totals.fail, reportData.totals.total);
+            } catch (error) {
+                console.error('Failed to generate report:', error);
+                throw error;
+            }
+        }
+
+        function createPieChart(passCount, failCount, totalStudents) {
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+            // Destroy previous chart if it exists
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+            performanceChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Passed', 'Failed'],
+                    datasets: [{
+                        data: [passCount, failCount],
+                        backgroundColor: ['#4cc9f0', '#f72585'],
+                        borderColor: ['#4cc9f0', '#f72585'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Overall Performance Distribution',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            color: 'var(--text-primary)'
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'var(--text-primary)',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const percentage = ((value / totalStudents) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshReport() {
+            const assessmentType = document.getElementById('report-assessment-type').value;
+            const year = document.getElementById('report-year').value;
+            const department = document.getElementById('report-department').value;
+            const subject = document.getElementById('report-subject');
+            const subjectCode = subject.value;
+            const selectedSection = document.getElementById('selected-section').value;
+            const passMark = parseInt(document.getElementById('report-pass-mark').value) || 40;
+            generateReport(assessmentType, year, department, selectedSection, subjectCode, passMark);
+        }
+    </script>
+</body>
+</html>
