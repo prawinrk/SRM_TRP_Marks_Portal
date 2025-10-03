@@ -10,19 +10,16 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
 
-// Initialize SQLite Database
-const db = new sqlite3.Database('./marksportal.db', (err) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    } else {
-        console.log('Connected to SQLite database.');
-        initializeDatabase();
-    }
-});
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize database tables
+// Database path - Render provides persistent storage
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? '/tmp/marksportal.db'  // Render persistent directory
+  : './marksportal.db';
+
+// Initialize database tables - MUST BE DEFINED BEFORE db CONNECTION
 function initializeDatabase() {
     // Students table
     db.run(`CREATE TABLE IF NOT EXISTS students (
@@ -62,9 +59,18 @@ function initializeDatabase() {
         UNIQUE(student_id, subject_code, assessment_type, academic_year)
     )`);
     
-
     console.log('Database tables initialized');
 }
+
+// Database connection - MUST COME AFTER initializeDatabase function
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Error opening database:', err.message);
+    } else {
+        console.log('Connected to SQLite database at:', dbPath);
+        initializeDatabase();
+    }
+});
 
 // API Routes for Students
 app.get('/api/students', (req, res) => {
@@ -320,6 +326,11 @@ app.get('/api/students/class', (req, res) => {
         }
         res.json({ students: rows });
     });
+});
+
+// Serve React app for any other requests
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server
