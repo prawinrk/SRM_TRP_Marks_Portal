@@ -15,9 +15,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Database path - Render provides persistent storage
-const dbPath = process.env.NODE_ENV === 'production' 
-  ? '/tmp/marksportal.db'  // Render persistent directory
-  : './marksportal.db';
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'marksportal.db');
 
 // Initialize database tables - MUST BE DEFINED BEFORE db CONNECTION
 function initializeDatabase() {
